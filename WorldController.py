@@ -1,27 +1,23 @@
 from __future__ import annotations
 
-from NullObject import NullObject
-
 from typing import TYPE_CHECKING
 
+
 if TYPE_CHECKING:
-    from World import World
+    from WorldGrid import WorldGrid
 
 
 class WorldController:
-    def __init__(self, world, row, col):
-        self.world: World = world
+    def __init__(self, world: WorldGrid, newWorldGrid: WorldGrid, row, col):
+        self.world: WorldGrid = world
+        self.newWorldGrid: WorldGrid = newWorldGrid
         self.col = col
         self.row = row
 
-    def getCage(self):
-        pass
+    def getUnit(self, row, col):
+        abs_row = (self.row + row) % self.world.rows
+        abs_col = (self.col + col) % self.world.cols
+        return self.world.getUnit(abs_row, abs_col)
 
-    def newUnit(self, row, col, unit):
-        col = self.col + col
-        if col >= self.world.rows:
-            return
-        row = (self.row + row) % self.world.cols
-        real_cage = self.world.getCage(row, col)
-        if issubclass(type(real_cage.unit), NullObject):
-            real_cage.unit = unit
+    def setUnit(self, unit):
+        self.newWorldGrid.setUnit(self.row, self.col, unit)
