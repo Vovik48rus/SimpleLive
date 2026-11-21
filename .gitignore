@@ -2,4 +2,3 @@
 .venv
 uv.lock
 **/__pycache__
-/SimpleLive_listing.txt

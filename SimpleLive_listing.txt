@@ -1,0 +1,236 @@
+===== SimpleLive (12 files) =====
+
+SimpleLive/
+├── Unit/
+│   ├── NullObject.py
+│   ├── NullUnit.py
+│   ├── SimpleUnit.py
+│   └── Unit.py
+├── World/
+│   ├── Handler/
+│   │   ├── ABC/
+│   │   │   └── WorldHandlerABC.py
+│   │   └── SimpleWorldHandler.py
+│   ├── WorldController.py
+│   ├── WorldGrid.py
+│   └── WorldSimulation.py
+├── .gitignore
+├── main.py
+└── pyproject.toml
+
+----- Unit/NullObject.py -----
+from abc import ABC
+
+
+class NullObject(ABC):
+    pass
+
+----- Unit/NullUnit.py -----
+from Unit.NullObject import NullObject
+from Unit.Unit import Unit
+
+
+class NullUnit(NullObject, Unit):
+    pass
+
+----- Unit/SimpleUnit.py -----
+from Unit.Unit import Unit
+
+
+class SimpleUnit(Unit):
+
+    @property
+    def energy(self) -> int:
+        return self._energy
+
+    @energy.setter
+    def energy(self, value):
+        self._energy = value
+
+----- Unit/Unit.py -----
+from abc import ABC
+
+
+class Unit(ABC):
+    def __init__(self):
+        self._energy = 10
+
+    @property
+    def energy(self) -> int:
+        return self._energy
+
+----- World/Handler/ABC/WorldHandlerABC.py -----
+from __future__ import annotations
+from abc import ABC
+
+from World.WorldController import WorldController
+
+
+class WorldHandlerABC(ABC):
+    _worldController: WorldController
+
+    def __init__(self, worldController: WorldController=None):
+        self._worldController = worldController
+
+
+    @property
+    def worldController(self) -> WorldController:
+        return self._worldController
+
+    @worldController.setter
+    def worldController(self, worldController: WorldController):
+        self._worldController = worldController
+
+    def run(self):
+        raise NotImplemented
+
+----- World/Handler/SimpleWorldHandler.py -----
+from Unit.NullUnit import NullUnit
+from World.Handler.ABC.WorldHandlerABC import WorldHandlerABC
+
+
+class SimpleWorldHandler(WorldHandlerABC):
+    def run(self):
+        worldController = self.worldController
+        current = worldController.getUnit(0, 0)
+        if not issubclass(type(current), NullUnit):
+            current.energy -= 1
+        if current.energy == 0:
+            worldController.setUnit(NullUnit())
+        else:
+            worldController.setUnit(current)
+
+----- World/WorldController.py -----
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+
+if TYPE_CHECKING:
+    from WorldGrid import WorldGrid
+
+
+class WorldController:
+    def __init__(self, world: WorldGrid, newWorldGrid: WorldGrid, row, col):
+        self.world: WorldGrid = world
+        self.newWorldGrid: WorldGrid = newWorldGrid
+        self.col = col
+        self.row = row
+
+    def getUnit(self, row, col):
+        abs_row = (self.row + row) % self.world.rows
+        abs_col = (self.col + col) % self.world.cols
+        return self.world.getUnit(abs_row, abs_col)
+
+    def setUnit(self, unit):
+        self.newWorldGrid.setUnit(self.row, self.col, unit)
+
+----- World/WorldGrid.py -----
+# WorldGrid.py
+from __future__ import annotations
+
+from Unit.NullUnit import NullUnit
+from Unit.Unit import Unit
+
+
+class WorldGrid:
+    _rows: int
+    _cols: int
+    matrix: list[list[Unit]]
+
+    def __init__(self, rows: int, cols: int) -> None:
+        self.matrix = [[NullUnit() for _ in range(cols)] for _ in range(rows)]
+        self._rows = rows
+        self._cols = cols
+
+    @property
+    def rows(self):
+        return self._rows
+
+    @property
+    def cols(self):
+        return self._cols
+
+    def setUnit(self, row: int, col: int, unit: Unit):
+        self.matrix[row][col] = unit
+
+    def getUnit(self, row: int, col: int) -> Unit:
+        row = row % self.rows
+        col = col % self.cols
+        return self.matrix[row][col]
+
+----- World/WorldSimulation.py -----
+# WorldSimulation.py
+from __future__ import annotations
+
+from World.WorldGrid import WorldGrid
+from World.WorldController import WorldController
+from World.Handler.ABC.WorldHandlerABC import WorldHandlerABC
+
+
+class WorldSimulation:
+    def __init__(self, grid: WorldGrid) -> None:
+        self._grid = grid
+
+    @property
+    def grid(self) -> WorldGrid:
+        return self._grid
+
+    def run(self, handler: WorldHandlerABC):
+        new_worldGrid = type(self._grid)(self.grid.rows, self.grid.cols)
+
+        for row in range(self._grid.rows):
+            for col in range(self._grid.cols):
+                handler.worldController = WorldController(self._grid, new_worldGrid, row, col)
+                handler.run()
+
+        self._grid = new_worldGrid
+
+----- .gitignore -----
+.idea
+.venv
+uv.lock
+**/__pycache__
+
+----- main.py -----
+from Unit.NullUnit import NullUnit
+from Unit.SimpleUnit import SimpleUnit
+from World.Handler.SimpleWorldHandler import SimpleWorldHandler
+from World.WorldGrid import WorldGrid
+from World.WorldSimulation import WorldSimulation
+
+
+def pprint(world):
+    for col in range(5):
+        for row in range(5):
+            if not issubclass(type(world.matrix[row][col]), NullUnit):
+                print(world.matrix[row][col].energy, end=' ')
+            else:
+                print(0, end=' ')
+        print()
+
+
+if __name__ == "__main__":
+    world = WorldGrid(5, 5)
+    world.setUnit(2, 2, SimpleUnit())
+
+    pprint(world)
+    print()
+    simpleWorldHandler = SimpleWorldHandler()
+
+    sim = WorldSimulation(world)
+
+    while True:
+        sim.run(simpleWorldHandler)
+
+        pprint(world)
+        print()
+        input()
+
+----- pyproject.toml -----
+[project]
+name = "simplelive"
+version = "0.1.0"
+description = "Add your description here"
+requires-python = ">=3.13"
+dependencies = []
