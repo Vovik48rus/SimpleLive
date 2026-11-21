@@ -1,8 +1,8 @@
 from Unit.NullUnit import NullUnit
 from Unit.SimpleUnit import SimpleUnit
-from SimpleWorldHandler import SimpleWorldHandler
-from WorldGrid import WorldGrid
-from WorldSimulation import WorldSimulation
+from World.Handler.SimpleWorldHandler import SimpleWorldHandler
+from World.WorldGrid import WorldGrid
+from World.WorldSimulation import WorldSimulation
 
 
 def pprint(world):

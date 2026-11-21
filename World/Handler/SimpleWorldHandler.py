@@ -1,5 +1,5 @@
 from Unit.NullUnit import NullUnit
-from WorldHandler import WorldHandlerABC
+from World.Handler.ABC.WorldHandlerABC import WorldHandlerABC
 
 
 class SimpleWorldHandler(WorldHandlerABC):

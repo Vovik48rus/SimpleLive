@@ -1,9 +1,9 @@
 # WorldSimulation.py
 from __future__ import annotations
 
-from WorldGrid import WorldGrid
-from WorldController import WorldController
-from WorldHandler import WorldHandlerABC
+from World.WorldGrid import WorldGrid
+from World.WorldController import WorldController
+from World.Handler.ABC.WorldHandlerABC import WorldHandlerABC
 
 
 class WorldSimulation:

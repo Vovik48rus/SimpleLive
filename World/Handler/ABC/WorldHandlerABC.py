@@ -1,7 +1,7 @@
 from __future__ import annotations
 from abc import ABC
 
-from WorldController import WorldController
+from World.WorldController import WorldController
 
 
 class WorldHandlerABC(ABC):
